@@ -1,208 +1,210 @@
-<!DOCTYPE html> <html lang="en"> <head> <meta charset="UTF-8" /> <title>Capital Efficiency Map</title> <meta name="viewport" content="width=device-width, initial-scale=1" /> <link rel="stylesheet" href="style.css" /> <!-- Chart.js CDN --> <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> </head> <body> <header class="app-header"> <div class="header-content"> <h1>Capital Efficiency Map</h1> <p>Visualise ROIC vs reinvestment to spot compounders, cash generators, and value traps.</p> </div> </header> <main class="app-main"> <!-- LEFT: COMPANY INPUTS --> <section class="inputs-panel card"> <h2>Company Inputs</h2>
-  <div class="input-group">
-    <h3>Company List</h3>
-    <div class="input-actions-row">
-      <button type="button" id="quickExamplesBtn" class="secondary-btn">Quick add example set</button>
-      <button type="button" id="addCompanyBtn" class="secondary-btn">Add company</button>
+<!DOCTYPE html> <html lang="en"> <head> <meta charset="UTF-8" /> <title>Intangible Capital Exposure Explorer</title> <meta name="viewport" content="width=device-width, initial-scale=1" /> <link rel="stylesheet" href="style.css" /> <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> </head> <body> <header class="app-header"> <div class="header-inner"> <h1>Intangible Capital Exposure Explorer</h1> <p>Screen large companies by intangible assets, R&amp;D and brand investment exposure.</p> </div> </header> <main class="app-main"> <!-- LEFT: FILTERS & CONTROLS --> <section class="filters-panel card"> <h2>Filters &amp; Controls</h2>
+  <!-- Universe filters -->
+  <div class="filter-group">
+    <h3>Universe filters</h3>
+
+    <div class="filter-subgroup">
+      <h4>Region</h4>
+      <label><input type="checkbox" class="region-filter" value="US" checked /> US</label>
+      <label><input type="checkbox" class="region-filter" value="Europe" checked /> Europe</label>
+      <label><input type="checkbox" class="region-filter" value="Asia" checked /> Asia</label>
+      <label><input type="checkbox" class="region-filter" value="Other" checked /> Other</label>
     </div>
 
-    <div class="table-wrapper input-table-wrapper">
-      <table id="companyInputTable">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Ticker</th>
-            <th>ROIC %</th>
-            <th>Reinvest %</th>
-            <th>Growth %</th>
-            <th>CoC %</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- Populated by JS -->
-        </tbody>
-      </table>
+    <div class="filter-subgroup">
+      <h4>Sector</h4>
+      <label><input type="checkbox" class="sector-filter" value="Technology" checked /> Technology</label>
+      <label><input type="checkbox" class="sector-filter" value="Consumer" checked /> Consumer</label>
+      <label><input type="checkbox" class="sector-filter" value="Financials" checked /> Financials</label>
+      <label><input type="checkbox" class="sector-filter" value="Healthcare" checked /> Healthcare</label>
+      <label><input type="checkbox" class="sector-filter" value="Industrial" checked /> Industrial</label>
+      <label><input type="checkbox" class="sector-filter" value="Luxury" checked /> Luxury</label>
+      <label><input type="checkbox" class="sector-filter" value="Other" checked /> Other</label>
     </div>
   </div>
 
-  <div class="input-group">
-    <h3>Quadrant thresholds</h3>
+  <!-- Intangible exposure filters -->
+  <div class="filter-group">
+    <h3>Intangible exposure filters</h3>
     <label>
-      ROIC high/low threshold (%)
-      <input type="number" id="roicThresholdInput" value="10" step="0.5" />
+      Minimum exposure score (0-100)
+      <input type="number" id="exposureMinInput" min="0" max="100" value="0" />
     </label>
     <label>
-      Reinvestment high/low threshold (%)
-      <input type="number" id="reinvestThresholdInput" value="30" step="1" />
+      Maximum exposure score (0-100)
+      <input type="number" id="exposureMaxInput" min="0" max="100" value="100" />
+    </label>
+    <label>
+      Quick filter
+      <select id="exposureQuickSelect">
+        <option value="all">All exposure levels</option>
+        <option value="high">High intangible only</option>
+        <option value="low">Low intangible only</option>
+      </select>
     </label>
   </div>
 
-  <div class="input-group">
-    <h3>Map options</h3>
-    <label class="checkbox-label">
-      <input type="checkbox" id="showLabelsInput" checked />
-      Show company labels on chart
-    </label>
-    <label class="checkbox-label">
-      <input type="checkbox" id="colourByQuadrantInput" checked />
-      Colour points by quadrant
-    </label>
-    <label class="checkbox-label">
-      <input type="checkbox" id="highlightCompoundersInput" checked />
-      Highlight compounders
+  <!-- Size filters -->
+  <div class="filter-group">
+    <h3>Size filters</h3>
+    <label>
+      Market cap selection
+      <select id="sizeFilterSelect">
+        <option value="all">All sizes</option>
+        <option value="top10">Top 10 by market cap</option>
+        <option value="top20">Top 20 by market cap</option>
+      </select>
     </label>
   </div>
 
-  <div class="input-actions">
-    <button type="button" id="recalculateBtn" class="primary-btn">Recalculate Map</button>
+  <!-- Actions -->
+  <div class="filter-actions">
+    <button type="button" id="applyFiltersBtn" class="primary-btn">Apply filters</button>
   </div>
-
-  <p class="disclaimer">
-    ROIC and reinvestment inputs are approximate and for illustration only. Use annual or multi-year averages where possible.
+  <p class="filters-note">
+    All metrics are illustrative, based on a static sample of large companies.
   </p>
 </section>
 
 <!-- RIGHT: ANALYSIS -->
 <section class="analysis-panel card">
   <div class="tabs">
-    <button class="tab-btn active" data-tab-target="map-tab">Map</button>
+    <button class="tab-btn active" data-tab-target="overview-tab">Overview</button>
+    <button class="tab-btn" data-tab-target="scatter-tab">Scatter</button>
     <button class="tab-btn" data-tab-target="table-tab">Table</button>
-    <button class="tab-btn" data-tab-target="quadrants-tab">Quadrants</button>
-    <button class="tab-btn" data-tab-target="settings-tab">Settings / Assumptions</button>
-    <button class="tab-btn" data-tab-target="help-tab">Help</button>
+    <button class="tab-btn" data-tab-target="profiles-tab">Profiles</button>
+    <button class="tab-btn" data-tab-target="help-tab">Help / Methodology</button>
   </div>
 
   <div class="tab-panels">
-    <!-- MAP TAB -->
-    <div id="map-tab" class="tab-panel active">
-      <h2>Capital Efficiency Map</h2>
-      <div class="chart-card full-width">
-        <canvas id="mapChart"></canvas>
+    <!-- OVERVIEW TAB -->
+    <div id="overview-tab" class="tab-panel active">
+      <h2>Overview</h2>
+      <div id="overviewSummary" class="summary-card"></div>
+      <div class="chart-card">
+        <h3>Companies by intangible exposure tier</h3>
+        <canvas id="tierBarChart"></canvas>
       </div>
-      <div id="mapSummary" class="summary-block"></div>
+    </div>
+
+    <!-- SCATTER TAB -->
+    <div id="scatter-tab" class="tab-panel">
+      <h2>Intangible assets vs investment</h2>
+      <div class="chart-card scatter-card">
+        <canvas id="intangibleScatterChart"></canvas>
+      </div>
+      <div id="scatterSummary" class="summary-card"></div>
     </div>
 
     <!-- TABLE TAB -->
     <div id="table-tab" class="tab-panel">
-      <h2>Company Table</h2>
-      <p class="note">Click on column headers to sort.</p>
+      <h2>Company table</h2>
+      <p class="note">Click column headers to sort. Click a row to open its profile.</p>
       <div class="table-wrapper">
-        <table id="companyTable">
+        <table id="intangibleTable">
           <thead>
             <tr>
               <th data-sort="name">Name</th>
               <th data-sort="ticker">Ticker</th>
-              <th data-sort="roic">ROIC %</th>
-              <th data-sort="reinvest">Reinvest %</th>
-              <th data-sort="costOfCapital">CoC %</th>
-              <th data-sort="spread">Spread %</th>
-              <th data-sort="score">Value score</th>
-              <th data-sort="quadrant">Quadrant</th>
-              <th data-sort="capitalBase5">Capital base (5y)</th>
+              <th data-sort="region">Region</th>
+              <th data-sort="sector">Sector</th>
+              <th data-sort="marketCapUsdBn">Mkt cap (USD bn)</th>
+              <th data-sort="intangibleAssetsPct">Intangibles % assets</th>
+              <th data-sort="goodwillPct">Goodwill % assets</th>
+              <th data-sort="rndPctSales">R&amp;D % sales</th>
+              <th data-sort="marketingPctSales">Marketing % sales</th>
+              <th data-sort="exposureScore">Exposure score</th>
+              <th data-sort="exposureTier">Exposure tier</th>
             </tr>
           </thead>
           <tbody>
-            <!-- Populated by JS -->
+            <!-- populated by JS -->
           </tbody>
         </table>
       </div>
     </div>
 
-    <!-- QUADRANTS TAB -->
-    <div id="quadrants-tab" class="tab-panel">
-      <h2>Quadrant Summary</h2>
-      <div id="quadrantSummaryText" class="summary-block"></div>
-      <div class="quadrant-grid">
-        <div id="quadrant-compounders" class="quadrant-card quadrant-compounders">
-          <!-- Populated by JS -->
+    <!-- PROFILES TAB -->
+    <div id="profiles-tab" class="tab-panel">
+      <h2>Company profile</h2>
+      <div class="profile-controls">
+        <label>
+          Select company
+          <select id="profileCompanySelect">
+            <!-- options populated by JS -->
+          </select>
+        </label>
+      </div>
+      <div id="profileDetails" class="profile-details">
+        <!-- content populated by JS -->
+      </div>
+      <div class="profile-charts">
+        <div class="chart-card">
+          <h3>Intangible metrics breakdown</h3>
+          <canvas id="profileBarChart"></canvas>
         </div>
-        <div id="quadrant-cash-generators" class="quadrant-card quadrant-cash-generators">
-          <!-- Populated by JS -->
-        </div>
-        <div id="quadrant-stabilisers" class="quadrant-card quadrant-stabilisers">
-          <!-- Populated by JS -->
-        </div>
-        <div id="quadrant-value-traps" class="quadrant-card quadrant-value-traps">
-          <!-- Populated by JS -->
+        <div class="chart-card">
+          <h3>Intangible exposure score</h3>
+          <canvas id="profileScoreChart"></canvas>
         </div>
       </div>
     </div>
 
-    <!-- SETTINGS TAB -->
-    <div id="settings-tab" class="tab-panel">
-      <h2>Settings / Assumptions</h2>
-      <form id="settingsForm" class="settings-grid">
-        <div class="settings-group">
-          <h3>Quadrant thresholds</h3>
-          <label>
-            ROIC threshold (%)
-            <input type="number" id="settingsRoicThreshold" step="0.5" />
-          </label>
-          <label>
-            Reinvestment threshold (%)
-            <input type="number" id="settingsReinvestThreshold" step="1" />
-          </label>
-        </div>
-        <div class="settings-group">
-          <h3>Cost of capital</h3>
-          <label>
-            Default cost of capital (%)
-            <input type="number" id="defaultCoCInput" step="0.5" value="8" />
-          </label>
-        </div>
-        <div class="settings-group">
-          <h3>Display options</h3>
-          <label class="checkbox-label">
-            <input type="checkbox" id="settingsShowLabels" />
-            Show company labels on chart
-          </label>
-          <label class="checkbox-label">
-            <input type="checkbox" id="settingsColourByQuadrant" />
-            Colour points by quadrant
-          </label>
-          <label class="checkbox-label">
-            <input type="checkbox" id="settingsHighlightCompounders" />
-            Highlight compounders
-          </label>
-        </div>
-      </form>
-      <p class="note">
-        Adjust thresholds and defaults to see how the map and quadrant classifications change. These are modelling aids, not forecasts.
-      </p>
-    </div>
-
     <!-- HELP TAB -->
     <div id="help-tab" class="tab-panel">
-      <h2>Help & Framework</h2>
+      <h2>Help &amp; methodology</h2>
       <div class="help-content">
         <p>
-          This tool helps you visualise how efficiently companies deploy capital. Each company is plotted by its
-          <strong>ROIC (return on invested capital)</strong> on the vertical axis and its
-          <strong>reinvestment rate</strong> on the horizontal axis.
+          This explorer uses a static, illustrative dataset of large global companies to show how different
+          business models can have very different exposure to intangible capital.
         </p>
+        <h3>What is intangible capital?</h3>
         <ul>
-          <li><strong>ROIC</strong> measures how much after-tax operating profit a company earns for each unit of capital it uses.</li>
-          <li><strong>Reinvestment rate</strong> approximates how much of that profit is reinvested to grow the capital base.</li>
-          <li><strong>Cost of capital</strong> is the hurdle rate a company needs to exceed to create value.</li>
-        </ul>
-        <p>The four quadrants are interpreted as:</p>
-        <ul>
-          <li><strong>Compounders</strong>: high ROIC and high reinvestment &ndash; potentially powerful engines of long-term value creation.</li>
-          <li><strong>Cash generators</strong>: high ROIC but low reinvestment &ndash; may produce strong cash but limited growth.</li>
-          <li><strong>Mature stabilisers</strong>: low ROIC and low reinvestment &ndash; often ex-growth or more defensive profiles.</li>
-          <li><strong>Value traps / capital burners</strong>: low ROIC but high reinvestment &ndash; growth that risks destroying value.</li>
+          <li><strong>Accounting intangibles</strong>: software, patents, trademarks, brands and goodwill recorded on the balance sheet.</li>
+          <li><strong>Intangible investment</strong>: R&amp;D, software development, data, and brand building spend that often goes through the income statement rather than the balance sheet.</li>
         </ul>
         <p>
-          All inputs are approximate and based on your own analysis (e.g. using annual reports, investor presentations, or your models).
-          The toy 5-year scenario uses a simple capital base of 100 and shows how reinvestment at the chosen ROIC might compound.
+          Traditional accounting treats most intangible investment as an expense rather than an asset, which can
+          distort measures like return on capital and reported profitability. The goal here is not to fix
+          accounting, but to provide a compact view of which companies lean most heavily on intangibles.
         </p>
+
+        <h3>Metrics used</h3>
+        <ul>
+          <li><strong>Intangible assets % of assets</strong>: accounting intangibles plus goodwill as a share of total assets.</li>
+          <li><strong>Goodwill % of assets</strong>: goodwill as a share of total assets.</li>
+          <li><strong>R&amp;D % of sales</strong>: research and development as a share of revenue.</li>
+          <li><strong>Marketing % of sales</strong>: sales, marketing and brand spend as a share of revenue.</li>
+          <li><strong>Software/services tilt</strong>: a rough 0-100 score indicating how software or service heavy the model is vs physical assets.</li>
+        </ul>
+
+        <h3>Intangible exposure score</h3>
+        <p>
+          For each company the tool constructs a simple index from 0 to 100 based on:
+        </p>
+        <ul>
+          <li>Intangible assets as a share of assets</li>
+          <li>R&amp;D and marketing intensity</li>
+          <li>Software/services tilt</li>
+        </ul>
+        <p>
+          The score is then grouped into tiers:
+        </p>
+        <ul>
+          <li>0 - 33: Low intangible</li>
+          <li>34 - 66: Medium intangible</li>
+          <li>67 - 100: High intangible</li>
+        </ul>
+
+        <h3>Important limitations</h3>
         <p class="note">
-          This tool is for educational and illustrative purposes only and is not investment advice or a recommendation to buy or sell any security.
+          Company metrics in this demo are approximate, static and illustrative only. They are not up to date, not
+          guaranteed to be accurate, and not suitable for making investment decisions. This tool is for educational
+          use only and does not constitute investment advice.
         </p>
       </div>
     </div>
   </div>
 </section>
 
-</main> <footer class="app-footer"> <p> This tool is for educational and illustrative purposes only and is not investment advice or a recommendation to buy or sell any security. </p> </footer> <script src="script.js"></script> </body> </html>
+</main> <footer class="app-footer"> <p> Company metrics in this demo are approximate and illustrative only. They are not suitable for making investment decisions. This tool does not constitute investment advice. </p> </footer> <script src="script.js"></script> </body> </html>

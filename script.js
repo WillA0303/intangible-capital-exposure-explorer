@@ -1,62 +1,444 @@
 /**
 
-Capital Efficiency Map
+Intangible Capital Exposure Explorer
 
-All analytics are simplified, illustrative and not investment advice.
+Static, illustrative dataset. Not investment advice.
 */
 
 document.addEventListener("DOMContentLoaded", () => {
+// -----------------------------
+// Configuration and dataset
+// -----------------------------
+
+const EXPOSURE_TIERS = {
+lowMax: 33,
+mediumMax: 66
+};
+
+const ALL_REGIONS = ["US", "Europe", "Asia", "Other"];
+const ALL_SECTORS = [
+"Technology",
+"Consumer",
+"Financials",
+"Healthcare",
+"Industrial",
+"Luxury",
+"Other"
+];
+
+/**
+
+Base illustrative dataset of large global companies.
+
+Values are deliberately approximate and static.
+*/
+const BASE_DATASET = [
+{
+id: "aapl",
+name: "Apple Inc",
+ticker: "AAPL",
+region: "US",
+country: "United States",
+sector: "Technology",
+marketCapUsdBn: 2800,
+intangibleAssetsPct: 25,
+goodwillPct: 5,
+rndPctSales: 7,
+marketingPctSales: 6,
+softwareServicesTilt: 80,
+notes: "Consumer hardware and services ecosystem with strong brand and software integration."
+},
+{
+id: "msft",
+name: "Microsoft Corp",
+ticker: "MSFT",
+region: "US",
+country: "United States",
+sector: "Technology",
+marketCapUsdBn: 2700,
+intangibleAssetsPct: 32,
+goodwillPct: 10,
+rndPctSales: 13,
+marketingPctSales: 5,
+softwareServicesTilt: 95,
+notes: "Enterprise software, cloud and productivity platforms with high software and subscription exposure."
+},
+{
+id: "googl",
+name: "Alphabet Inc",
+ticker: "GOOGL",
+region: "US",
+country: "United States",
+sector: "Technology",
+marketCapUsdBn: 1900,
+intangibleAssetsPct: 28,
+goodwillPct: 6,
+rndPctSales: 15,
+marketingPctSales: 8,
+softwareServicesTilt: 95,
+notes: "Search, advertising and cloud platforms built around data and software."
+},
+{
+id: "meta",
+name: "Meta Platforms",
+ticker: "META",
+region: "US",
+country: "United States",
+sector: "Technology",
+marketCapUsdBn: 1100,
+intangibleAssetsPct: 20,
+goodwillPct: 8,
+rndPctSales: 21,
+marketingPctSales: 14,
+softwareServicesTilt: 98,
+notes: "Social platforms and advertising network with very high R&D intensity."
+},
+{
+id: "amzn",
+name: "Amazon.com",
+ticker: "AMZN",
+region: "US",
+country: "United States",
+sector: "Consumer",
+marketCapUsdBn: 1800,
+intangibleAssetsPct: 23,
+goodwillPct: 10,
+rndPctSales: 11,
+marketingPctSales: 4,
+softwareServicesTilt: 70,
+notes: "E-commerce, logistics and cloud; mix of physical infrastructure and software."
+},
+{
+id: "nvda",
+name: "NVIDIA Corp",
+ticker: "NVDA",
+region: "US",
+country: "United States",
+sector: "Technology",
+marketCapUsdBn: 2300,
+intangibleAssetsPct: 30,
+goodwillPct: 7,
+rndPctSales: 19,
+marketingPctSales: 3,
+softwareServicesTilt: 75,
+notes: "Semiconductor design with heavy R&D investment and licensing."
+},
+{
+id: "tsla",
+name: "Tesla Inc",
+ticker: "TSLA",
+region: "US",
+country: "United States",
+sector: "Consumer",
+marketCapUsdBn: 800,
+intangibleAssetsPct: 15,
+goodwillPct: 2,
+rndPctSales: 5,
+marketingPctSales: 3,
+softwareServicesTilt: 55,
+notes: "Electric vehicles and energy with mix of manufacturing and software-like features."
+},
+{
+id: "asml",
+name: "ASML Holding",
+ticker: "ASML",
+region: "Europe",
+country: "Netherlands",
+sector: "Industrial",
+marketCapUsdBn: 400,
+intangibleAssetsPct: 35,
+goodwillPct: 6,
+rndPctSales: 15,
+marketingPctSales: 2,
+softwareServicesTilt: 60,
+notes: "Highly concentrated intellectual property in semiconductor lithography."
+},
+{
+id: "sap",
+name: "SAP SE",
+ticker: "SAP",
+region: "Europe",
+country: "Germany",
+sector: "Technology",
+marketCapUsdBn: 200,
+intangibleAssetsPct: 40,
+goodwillPct: 15,
+rndPctSales: 13,
+marketingPctSales: 7,
+softwareServicesTilt: 90,
+notes: "Enterprise software and cloud-based ERP with large software asset base."
+},
+{
+id: "lvmh",
+name: "LVMH",
+ticker: "MC",
+region: "Europe",
+country: "France",
+sector: "Luxury",
+marketCapUsdBn: 450,
+intangibleAssetsPct: 55,
+goodwillPct: 20,
+rndPctSales: 3,
+marketingPctSales: 14,
+softwareServicesTilt: 20,
+notes: "Global luxury brands where economic value is driven by brand equity and design."
+},
+{
+id: "ulvr",
+name: "Unilever",
+ticker: "ULVR",
+region: "Europe",
+country: "United Kingdom",
+sector: "Consumer",
+marketCapUsdBn: 120,
+intangibleAssetsPct: 40,
+goodwillPct: 18,
+rndPctSales: 2,
+marketingPctSales: 12,
+softwareServicesTilt: 10,
+notes: "Consumer brands business with significant marketing-driven intangible spend."
+},
+{
+id: "ko",
+name: "Coca-Cola",
+ticker: "KO",
+region: "US",
+country: "United States",
+sector: "Consumer",
+marketCapUsdBn: 260,
+intangibleAssetsPct: 60,
+goodwillPct: 25,
+rndPctSales: 1,
+marketingPctSales: 15,
+softwareServicesTilt: 5,
+notes: "Beverage brands with very high brand and distribution value relative to physical assets."
+},
+{
+id: "nsee",
+name: "Nestlé",
+ticker: "NESN",
+region: "Europe",
+country: "Switzerland",
+sector: "Consumer",
+marketCapUsdBn: 300,
+intangibleAssetsPct: 45,
+goodwillPct: 18,
+rndPctSales: 1,
+marketingPctSales: 10,
+softwareServicesTilt: 5,
+notes: "Global food brands with brand and distribution heavy asset base."
+},
+{
+id: "jpm",
+name: "JPMorgan Chase",
+ticker: "JPM",
+region: "US",
+country: "United States",
+sector: "Financials",
+marketCapUsdBn: 500,
+intangibleAssetsPct: 12,
+goodwillPct: 5,
+rndPctSales: 0,
+marketingPctSales: 4,
+softwareServicesTilt: 40,
+notes: "Universal bank with significant technology and data spend but regulated balance sheet."
+},
+{
+id: "visa",
+name: "Visa Inc",
+ticker: "V",
+region: "US",
+country: "United States",
+sector: "Financials",
+marketCapUsdBn: 500,
+intangibleAssetsPct: 45,
+goodwillPct: 12,
+rndPctSales: 2,
+marketingPctSales: 7,
+softwareServicesTilt: 90,
+notes: "Global payments network where value sits in network effects, software and brand."
+},
+{
+id: "tcehy",
+name: "Tencent Holdings",
+ticker: "TCEHY",
+region: "Asia",
+country: "China",
+sector: "Technology",
+marketCapUsdBn: 350,
+intangibleAssetsPct: 38,
+goodwillPct: 12,
+rndPctSales: 11,
+marketingPctSales: 9,
+softwareServicesTilt: 95,
+notes: "Social media, gaming and fintech platforms with high software and content exposure."
+},
+{
+id: "baba",
+name: "Alibaba Group",
+ticker: "BABA",
+region: "Asia",
+country: "China",
+sector: "Consumer",
+marketCapUsdBn: 190,
+intangibleAssetsPct: 30,
+goodwillPct: 10,
+rndPctSales: 8,
+marketingPctSales: 6,
+softwareServicesTilt: 80,
+notes: "E-commerce, cloud and digital services with a mix of logistics and platform economics."
+},
+{
+id: "toyota",
+name: "Toyota Motor",
+ticker: "TM",
+region: "Asia",
+country: "Japan",
+sector: "Industrial",
+marketCapUsdBn: 250,
+intangibleAssetsPct: 12,
+goodwillPct: 3,
+rndPctSales: 4,
+marketingPctSales: 3,
+softwareServicesTilt: 25,
+notes: "Auto manufacturing with meaningful but not dominant intangible content."
+},
+{
+id: "roche",
+name: "Roche Holding",
+ticker: "ROG",
+region: "Europe",
+country: "Switzerland",
+sector: "Healthcare",
+marketCapUsdBn: 220,
+intangibleAssetsPct: 35,
+goodwillPct: 15,
+rndPctSales: 18,
+marketingPctSales: 5,
+softwareServicesTilt: 40,
+notes: "Pharmaceuticals and diagnostics with high R&D intensity and patent-driven value."
+},
+{
+id: "pfe",
+name: "Pfizer Inc",
+ticker: "PFE",
+region: "US",
+country: "United States",
+sector: "Healthcare",
+marketCapUsdBn: 150,
+intangibleAssetsPct: 30,
+goodwillPct: 16,
+rndPctSales: 14,
+marketingPctSales: 6,
+softwareServicesTilt: 35,
+notes: "Global pharma with patent and R&D driven intangible asset base."
+}
+];
+
+// -----------------------------
+// App state
+// -----------------------------
+
 const appState = {
-companies: [],
-thresholds: {
-roic: 10,
-reinvest: 30
-},
-settings: {
-showLabels: true,
-colourByQuadrant: true,
-highlightCompounders: true,
-defaultCostOfCapital: 8
-},
-charts: {
-mapChart: null
+baseDataset: [],
+companiesWithMetrics: [],
+filteredCompanies: [],
+filters: {
+regionsSelected: [...ALL_REGIONS],
+sectorsSelected: [...ALL_SECTORS],
+exposureMin: 0,
+exposureMax: 100,
+quickExposure: "all",
+sizeFilter: "all" // "all" | "top10" | "top20"
 },
 sort: {
 column: null,
 ascending: true
+},
+activeCompanyId: null,
+charts: {
+tierBarChart: null,
+intangibleScatterChart: null,
+profileBarChart: null,
+profileScoreChart: null
 }
 };
 
-/**
+// -----------------------------
+// Initialisation
+// -----------------------------
 
-Initialise the app
-*/
-function init() {
+function initApp() {
+appState.baseDataset = BASE_DATASET.map((c) => ({ ...c }));
+computeDerivedMetricsForAllCompanies();
 initTabs();
 initEventListeners();
 initCharts();
-// Load some default example companies
-loadExampleCompanies();
-renderCompanyInputTable();
-syncSettingsViewFromState();
-handleRecalculate();
+applyFilters();
 }
+
+// -----------------------------
+// Derived metrics and scoring
+// -----------------------------
 
 /**
 
-Tabs
+Compute intangible exposure score and tier for each company.
 */
+function computeDerivedMetricsForAllCompanies() {
+appState.companiesWithMetrics = appState.baseDataset.map((c) => {
+const intangibleAssetsPct = clampNumber(c.intangibleAssetsPct, 0, 100);
+const rndPctSales = Math.max(0, c.rndPctSales);
+const marketingPctSales = Math.max(0, c.marketingPctSales);
+const softwareServicesTilt = clampNumber(c.softwareServicesTilt, 0, 100);
+
+const normalisedIntangibleAssets = intangibleAssetsPct / 100;
+const investSum = rndPctSales + marketingPctSales;
+const normalisedInvestPct = Math.min(investSum / 40, 1); // cap at 1
+const normalisedSoftware = softwareServicesTilt / 100;
+
+const rawScore =
+0.4 * normalisedIntangibleAssets +
+0.35 * normalisedInvestPct +
+0.25 * normalisedSoftware;
+
+const exposureScore = clampNumber(rawScore * 100, 0, 100);
+
+let exposureTier = "Medium intangible";
+if (exposureScore <= EXPOSURE_TIERS.lowMax) {
+exposureTier = "Low intangible";
+} else if (exposureScore > EXPOSURE_TIERS.mediumMax) {
+exposureTier = "High intangible";
+}
+
+return {
+...c,
+intangibleAssetsPct,
+rndPctSales,
+marketingPctSales,
+softwareServicesTilt,
+exposureScore,
+exposureTier
+};
+});
+}
+
+// -----------------------------
+// Tabs
+// -----------------------------
+
 function initTabs() {
 const tabButtons = document.querySelectorAll(".tab-btn");
 const panels = document.querySelectorAll(".tab-panel");
 
 tabButtons.forEach((btn) => {
-
   btn.addEventListener("click", () => {
     const targetId = btn.getAttribute("data-tab-target");
     if (!targetId) return;
+
     tabButtons.forEach((b) => b.classList.remove("active"));
     panels.forEach((p) => p.classList.remove("active"));
+
     btn.classList.add("active");
     const panel = document.getElementById(targetId);
     if (panel) panel.classList.add("active");
@@ -66,884 +448,586 @@ tabButtons.forEach((btn) => {
 
 }
 
-/**
+// -----------------------------
+// Event listeners
+// -----------------------------
 
-Event listeners for inputs and buttons
-*/
 function initEventListeners() {
-const quickBtn = document.getElementById("quickExamplesBtn");
-const addCompanyBtn = document.getElementById("addCompanyBtn");
-const recalcBtn = document.getElementById("recalculateBtn");
-
-if (quickBtn) {
-
-  quickBtn.addEventListener("click", () => {
-    loadExampleCompanies();
-    renderCompanyInputTable();
-    handleRecalculate();
-  });
-}
-
-if (addCompanyBtn) {
-  addCompanyBtn.addEventListener("click", () => {
-    addEmptyCompany();
-    renderCompanyInputTable();
-  });
-}
-
-if (recalcBtn) {
-  recalcBtn.addEventListener("click", handleRecalculate);
-}
-
-// Settings sync
-const settingsForm = document.getElementById("settingsForm");
-if (settingsForm) {
-  settingsForm.addEventListener("change", () => {
-    collectThresholdsAndSettingsFromSettingsTab();
-    syncThresholdInputsFromState();
-    handleRecalculate();
-  });
-}
-
-// Thresholds on left panel
-const leftThresholdInputs = [
-  document.getElementById("roicThresholdInput"),
-  document.getElementById("reinvestThresholdInput"),
-  document.getElementById("showLabelsInput"),
-  document.getElementById("colourByQuadrantInput"),
-  document.getElementById("highlightCompoundersInput")
-];
-
-leftThresholdInputs.forEach((el) => {
-  if (!el) return;
-  el.addEventListener("change", () => {
-    collectThresholdsAndSettingsFromLeftPanel();
-    syncSettingsViewFromState();
-    handleRecalculate();
-  });
+const applyBtn = document.getElementById("applyFiltersBtn");
+if (applyBtn) {
+applyBtn.addEventListener("click", () => {
+readFiltersFromControls();
+applyFilters();
 });
+}
 
-// Sorting for table
-const companyTableHead = document.querySelector("#companyTable thead");
-if (companyTableHead) {
-  companyTableHead.addEventListener("click", (e) => {
+// Table sorting
+const tableHead = document.querySelector("#intangibleTable thead");
+if (tableHead) {
+  tableHead.addEventListener("click", (e) => {
     const th = e.target.closest("th");
     if (!th) return;
     const sortKey = th.getAttribute("data-sort");
     if (!sortKey) return;
-    handleSort(sortKey, th);
+    handleTableSort(sortKey, th);
+  });
+}
+
+// Table row click -> profile
+const tableBody = document.querySelector("#intangibleTable tbody");
+if (tableBody) {
+  tableBody.addEventListener("click", (e) => {
+    const row = e.target.closest("tr[data-id]");
+    if (!row) return;
+    const id = row.getAttribute("data-id");
+    setActiveCompany(id);
+  });
+}
+
+// Profiles dropdown
+const profileSelect = document.getElementById("profileCompanySelect");
+if (profileSelect) {
+  profileSelect.addEventListener("change", () => {
+    const id = profileSelect.value || null;
+    setActiveCompany(id);
   });
 }
 
 
 }
 
-/**
+// -----------------------------
+// Filters
+// -----------------------------
 
-Initialise Chart.js scatter chart
-*/
+function readFiltersFromControls() {
+// Regions
+const regionCheckboxes = document.querySelectorAll(".region-filter");
+let regionsSelected = [];
+regionCheckboxes.forEach((cb) => {
+if (cb.checked) regionsSelected.push(cb.value);
+});
+if (regionsSelected.length === 0) {
+regionsSelected = [...ALL_REGIONS];
+}
+
+// Sectors
+const sectorCheckboxes = document.querySelectorAll(".sector-filter");
+let sectorsSelected = [];
+sectorCheckboxes.forEach((cb) => {
+  if (cb.checked) sectorsSelected.push(cb.value);
+});
+if (sectorsSelected.length === 0) {
+  sectorsSelected = [...ALL_SECTORS];
+}
+
+// Exposure min/max
+const minInput = document.getElementById("exposureMinInput");
+const maxInput = document.getElementById("exposureMaxInput");
+let minVal = parseFloat(minInput?.value ?? "0");
+let maxVal = parseFloat(maxInput?.value ?? "100");
+
+if (isNaN(minVal)) minVal = 0;
+if (isNaN(maxVal)) maxVal = 100;
+minVal = clampNumber(minVal, 0, 100);
+maxVal = clampNumber(maxVal, 0, 100);
+if (minVal > maxVal) {
+  const temp = minVal;
+  minVal = maxVal;
+  maxVal = temp;
+}
+
+// Quick exposure filter
+const quickSelect = document.getElementById("exposureQuickSelect");
+const quickValue = quickSelect ? quickSelect.value : "all";
+
+// Size filter
+const sizeSelect = document.getElementById("sizeFilterSelect");
+const sizeFilter = sizeSelect ? sizeSelect.value : "all";
+
+// Apply quick filter overrides
+if (quickValue === "high") {
+  minVal = EXPOSURE_TIERS.mediumMax + 1;
+  maxVal = 100;
+} else if (quickValue === "low") {
+  minVal = 0;
+  maxVal = EXPOSURE_TIERS.lowMax;
+}
+
+// Write back clamped values to inputs for consistency
+if (minInput) minInput.value = minVal;
+if (maxInput) maxInput.value = maxVal;
+
+appState.filters = {
+  regionsSelected,
+  sectorsSelected,
+  exposureMin: minVal,
+  exposureMax: maxVal,
+  quickExposure: quickValue,
+  sizeFilter
+};
+
+
+}
+
+function applyFilters() {
+// Start from companies with metrics
+let list = [...appState.companiesWithMetrics];
+
+const { regionsSelected, sectorsSelected, exposureMin, exposureMax } =
+  appState.filters;
+
+list = list.filter((c) => regionsSelected.includes(c.region));
+list = list.filter((c) => sectorsSelected.includes(c.sector));
+list = list.filter(
+  (c) => c.exposureScore >= exposureMin && c.exposureScore <= exposureMax
+);
+
+// Sort by market cap descending for size filters
+list.sort((a, b) => b.marketCapUsdBn - a.marketCapUsdBn);
+
+// Apply size filter
+if (appState.filters.sizeFilter === "top10") {
+  list = list.slice(0, 10);
+} else if (appState.filters.sizeFilter === "top20") {
+  list = list.slice(0, 20);
+}
+
+appState.filteredCompanies = list;
+
+// Reset active company if needed
+if (
+  !appState.activeCompanyId ||
+  !appState.filteredCompanies.some((c) => c.id === appState.activeCompanyId)
+) {
+  appState.activeCompanyId =
+    appState.filteredCompanies.length > 0
+      ? appState.filteredCompanies[0].id
+      : null;
+}
+
+// After filtering, update UI
+updateOverviewTab();
+updateScatterTab();
+updateTableTab();
+updateProfilesTab();
+
+
+}
+
+// -----------------------------
+// Charts init
+// -----------------------------
+
 function initCharts() {
-const ctx = document.getElementById("mapChart").getContext("2d");
-
-appState.charts.mapChart = new Chart(ctx, {
-
-  type: "scatter",
+const tierCtx = document.getElementById("tierBarChart")?.getContext("2d");
+if (tierCtx) {
+appState.charts.tierBarChart = new Chart(tierCtx, {
+  type: "bar",
   data: {
-    datasets: []
+    labels: ["Low", "Medium", "High"],
+    datasets: [
+      {
+        label: "Companies",
+        data: [0, 0, 0],
+        backgroundColor: ["#6ee7b7", "#93c5fd", "#d8b4fe"]
+      }
+    ]
   },
   options: {
     responsive: true,
-    maintainAspectRatio: false,
+    maintainAspectRatio: true,   // changed from false
+    aspectRatio: 3,              // optional: wide, low chart (3:1)
+    indexAxis: "y",
     scales: {
       x: {
-        title: {
-          display: true,
-          text: "Reinvestment rate (%)"
-        },
-        beginAtZero: true
-      },
-      y: {
-        title: {
-          display: true,
-          text: "ROIC (%)"
-        },
-        beginAtZero: true
+        beginAtZero: true,
+        ticks: { precision: 0 }
       }
     },
     plugins: {
-      legend: {
-        display: false
+      legend: { display: false }
+    }
+  }
+});
+
+}
+
+const scatterCtx =
+  document.getElementById("intangibleScatterChart")?.getContext("2d");
+if (scatterCtx) {
+  appState.charts.intangibleScatterChart = new Chart(scatterCtx, {
+    type: "scatter",
+    data: {
+      datasets: []
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: {
+          title: {
+            display: true,
+            text: "Intangible assets (% of total assets)"
+          },
+          beginAtZero: true
+        },
+        y: {
+          title: {
+            display: true,
+            text: "Intangible investment (% of sales: R&D + marketing)"
+          },
+          beginAtZero: true
+        }
       },
-      tooltip: {
-        callbacks: {
-          label: (ctx) => {
-            const dataPoint = ctx.raw;
-            if (!dataPoint || !dataPoint.meta) return "";
-            const m = dataPoint.meta;
-            return [
-              `${m.name} (${m.ticker || "no ticker"})`,
-              `ROIC: ${m.roic.toFixed(1)}%`,
-              `Reinvest: ${m.reinvest.toFixed(1)}%`,
-              `Quadrant: ${m.quadrant}`,
-              `Value score: ${m.score.toFixed(2)}`
-            ];
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => {
+              const d = ctx.raw;
+              if (!d || !d.meta) return "";
+              const m = d.meta;
+              const invest = m.rndPctSales + m.marketingPctSales;
+              return [
+                `${m.name} (${m.ticker})`,
+                `${m.region}, ${m.sector}`,
+                `Intangibles: ${m.intangibleAssetsPct.toFixed(1)}%`,
+                `R&D + marketing: ${invest.toFixed(1)}% of sales`,
+                `Exposure score: ${m.exposureScore.toFixed(
+                  1
+                )} (${m.exposureTier})`,
+                `Market cap: $${m.marketCapUsdBn.toFixed(0)}bn`
+              ];
+            }
           }
         }
       }
     }
-  }
-});
-
-
+  });
 }
 
-/**
-
-Load some example companies into state
-*/
-function loadExampleCompanies() {
-appState.companies = [
-{
-name: "Alpha plc",
-ticker: "ALP",
-roicPct: 22,
-reinvestPct: 45,
-growthPct: 12,
-costOfCapitalPct: 8
-},
-{
-name: "Beta Corp",
-ticker: "BET",
-roicPct: 18,
-reinvestPct: 15,
-growthPct: 5,
-costOfCapitalPct: 7
-},
-{
-name: "Gamma Holdings",
-ticker: "GAM",
-roicPct: 7,
-reinvestPct: 10,
-growthPct: 2,
-costOfCapitalPct: 8
-},
-{
-name: "Delta Industries",
-ticker: "DEL",
-roicPct: 6,
-reinvestPct: 55,
-growthPct: 8,
-costOfCapitalPct: 9
-},
-{
-name: "Epsilon Group",
-ticker: "EPS",
-roicPct: 30,
-reinvestPct: 25,
-growthPct: 10,
-costOfCapitalPct: 8
-}
-];
-}
-
-/**
-
-Add an empty company row to state
-*/
-function addEmptyCompany() {
-appState.companies.push({
-name: "",
-ticker: "",
-roicPct: null,
-reinvestPct: null,
-growthPct: null,
-costOfCapitalPct: null
-});
-}
-
-/**
-
-Render the company input table from state
-*/
-function renderCompanyInputTable() {
-const tbody = document.querySelector("#companyInputTable tbody");
-if (!tbody) return;
-
-tbody.innerHTML = "";
-
-appState.companies.forEach((c, idx) => {
-  const tr = document.createElement("tr");
-  tr.innerHTML = `
-    <td><input type="text" data-field="name" data-index="${idx}" value="${c.name || ""}"></td>
-    <td><input type="text" data-field="ticker" data-index="${idx}" value="${c.ticker || ""}"></td>
-    <td><input type="number" step="0.1" data-field="roicPct" data-index="${idx}" value="${c.roicPct ?? ""}"></td>
-    <td><input type="number" step="0.1" data-field="reinvestPct" data-index="${idx}" value="${c.reinvestPct ?? ""}"></td>
-    <td><input type="number" step="0.1" data-field="growthPct" data-index="${idx}" value="${c.growthPct ?? ""}"></td>
-    <td><input type="number" step="0.1" data-field="costOfCapitalPct" data-index="${idx}" value="${c.costOfCapitalPct ?? ""}"></td>
-    <td><button type="button" class="remove-row-btn" data-index="${idx}">X</button></td>
-  `;
-  tbody.appendChild(tr);
-});
-
-// Attach listeners for inputs and remove buttons
-tbody.querySelectorAll("input").forEach((input) => {
-  input.addEventListener("change", handleCompanyInputChange);
-});
-
-tbody.querySelectorAll(".remove-row-btn").forEach((btn) => {
-  btn.addEventListener("click", handleRemoveCompanyRow);
-});
-
-
-}
-
-/**
-
-Handle changes in company inputs (inline)
-*/
-function handleCompanyInputChange(e) {
-const el = e.target;
-const index = parseInt(el.getAttribute("data-index"), 10);
-const field = el.getAttribute("data-field");
-if (isNaN(index) || !field) return;
-
-const value = el.value;
-
-const company = appState.companies[index];
-if (!company) return;
-
-if (field === "name" || field === "ticker") {
-  company[field] = value;
-} else {
-  const num = parseFloat(value);
-  company[field] = isNaN(num) ? null : num;
-}
-
-
-}
-
-/**
-
-Remove a company row
-*/
-function handleRemoveCompanyRow(e) {
-const idx = parseInt(e.target.getAttribute("data-index"), 10);
-if (isNaN(idx)) return;
-appState.companies.splice(idx, 1);
-renderCompanyInputTable();
-handleRecalculate();
-}
-
-/**
-
-Collect company inputs from DOM into state just before calculations
-*/
-function collectCompanyInputs() {
-const tbody = document.querySelector("#companyInputTable tbody");
-if (!tbody) return;
-
-const rows = tbody.querySelectorAll("tr");
-
-const companies = [];
-
-rows.forEach((row) => {
-  const inputs = row.querySelectorAll("input[data-field]");
-  const company = {
-    name: "",
-    ticker: "",
-    roicPct: null,
-    reinvestPct: null,
-    growthPct: null,
-    costOfCapitalPct: null
-  };
-
-  inputs.forEach((input) => {
-    const field = input.getAttribute("data-field");
-    let value = input.value;
-    if (field === "name" || field === "ticker") {
-      company[field] = value.trim();
-    } else {
-      const num = parseFloat(value);
-      company[field] = isNaN(num) ? null : num;
+const profileBarCtx =
+  document.getElementById("profileBarChart")?.getContext("2d");
+if (profileBarCtx) {
+  appState.charts.profileBarChart = new Chart(profileBarCtx, {
+    type: "bar",
+    data: {
+      labels: [
+        "Intangibles % assets",
+        "Goodwill % assets",
+        "R&D % sales",
+        "Marketing % sales"
+      ],
+      datasets: [
+        {
+          label: "Value",
+          data: [0, 0, 0, 0],
+          backgroundColor: ["#4f46e5"]
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
     }
   });
+}
 
-  // Keep rows that have at least a name or some numeric content
-  const hasContent =
-    company.name ||
-    company.ticker ||
-    company.roicPct !== null ||
-    company.reinvestPct !== null ||
-    company.growthPct !== null;
-
-  if (hasContent) {
-    if (company.costOfCapitalPct === null) {
-      company.costOfCapitalPct = appState.settings.defaultCostOfCapital;
+const profileScoreCtx =
+  document.getElementById("profileScoreChart")?.getContext("2d");
+if (profileScoreCtx) {
+  appState.charts.profileScoreChart = new Chart(profileScoreCtx, {
+    type: "bar",
+    data: {
+      labels: ["Exposure score"],
+      datasets: [
+        {
+          label: "Score",
+          data: [0],
+          backgroundColor: ["#7c3aed"]
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          max: 100
+        }
+      }
     }
-    companies.push(company);
-  }
-});
-
-appState.companies = companies;
-
-
-}
-
-/**
-
-Collect thresholds/settings from left panel
-*/
-function collectThresholdsAndSettingsFromLeftPanel() {
-const getNumber = (id, fallback) => {
-const el = document.getElementById(id);
-if (!el) return fallback;
-const val = parseFloat(el.value);
-return isNaN(val) ? fallback : val;
-};
-
-appState.thresholds.roic = getNumber("roicThresholdInput", appState.thresholds.roic);
-
-appState.thresholds.reinvest = getNumber("reinvestThresholdInput", appState.thresholds.reinvest);
-
-const showLabels = document.getElementById("showLabelsInput");
-const colourByQuad = document.getElementById("colourByQuadrantInput");
-const highlightComp = document.getElementById("highlightCompoundersInput");
-
-if (showLabels) appState.settings.showLabels = showLabels.checked;
-if (colourByQuad) appState.settings.colourByQuadrant = colourByQuad.checked;
-if (highlightComp) appState.settings.highlightCompounders = highlightComp.checked;
-
-
-}
-
-/**
-
-Collect thresholds/settings from Settings tab
-*/
-function collectThresholdsAndSettingsFromSettingsTab() {
-const getNumber = (id, fallback) => {
-const el = document.getElementById(id);
-if (!el) return fallback;
-const val = parseFloat(el.value);
-return isNaN(val) ? fallback : val;
-};
-
-appState.thresholds.roic = getNumber("settingsRoicThreshold", appState.thresholds.roic);
-
-appState.thresholds.reinvest = getNumber(
-  "settingsReinvestThreshold",
-  appState.thresholds.reinvest
-);
-
-appState.settings.defaultCostOfCapital = getNumber(
-  "defaultCoCInput",
-  appState.settings.defaultCostOfCapital
-);
-
-const showLabels = document.getElementById("settingsShowLabels");
-const colourByQuad = document.getElementById("settingsColourByQuadrant");
-const highlightComp = document.getElementById("settingsHighlightCompounders");
-
-if (showLabels) appState.settings.showLabels = showLabels.checked;
-if (colourByQuad) appState.settings.colourByQuadrant = colourByQuad.checked;
-if (highlightComp) appState.settings.highlightCompounders = highlightComp.checked;
-
-
-}
-
-/**
-
-Keep Settings tab view in sync with state
-*/
-function syncSettingsViewFromState() {
-const rTh = document.getElementById("settingsRoicThreshold");
-const reinTh = document.getElementById("settingsReinvestThreshold");
-const defaultCoC = document.getElementById("defaultCoCInput");
-const showLabels = document.getElementById("settingsShowLabels");
-const colourByQuad = document.getElementById("settingsColourByQuadrant");
-const highlightComp = document.getElementById("settingsHighlightCompounders");
-
-if (rTh) rTh.value = appState.thresholds.roic;
-
-if (reinTh) reinTh.value = appState.thresholds.reinvest;
-if (defaultCoC) defaultCoC.value = appState.settings.defaultCostOfCapital;
-if (showLabels) showLabels.checked = appState.settings.showLabels;
-if (colourByQuad) colourByQuad.checked = appState.settings.colourByQuadrant;
-if (highlightComp) highlightComp.checked = appState.settings.highlightCompounders;
-
-
-}
-
-/**
-
-Keep left panel threshold inputs in sync with state
-*/
-function syncThresholdInputsFromState() {
-const rTh = document.getElementById("roicThresholdInput");
-const reinTh = document.getElementById("reinvestThresholdInput");
-const showLabels = document.getElementById("showLabelsInput");
-const colourByQuad = document.getElementById("colourByQuadrantInput");
-const highlightComp = document.getElementById("highlightCompoundersInput");
-
-if (rTh) rTh.value = appState.thresholds.roic;
-
-if (reinTh) reinTh.value = appState.thresholds.reinvest;
-if (showLabels) showLabels.checked = appState.settings.showLabels;
-if (colourByQuad) colourByQuad.checked = appState.settings.colourByQuadrant;
-if (highlightComp) highlightComp.checked = appState.settings.highlightCompounders;
-
-
-}
-
-/**
-
-Classify quadrant given ROIC and reinvestment
-*/
-function classifyQuadrant(roicPct, reinvestPct, thresholds) {
-const rTh = thresholds.roic;
-const reinTh = thresholds.reinvest;
-
-if (roicPct >= rTh && reinvestPct >= reinTh) return "Compounder";
-
-if (roicPct >= rTh && reinvestPct < reinTh) return "Cash generator";
-if (roicPct < rTh && reinvestPct < reinTh) return "Mature stabiliser";
-return "Value trap / capital burner";
-
-
-}
-
-/**
-
-Compute toy 5-year capital scenario
-*/
-function computeToyScenarioForCompany(roicPct, reinvestPct) {
-if (roicPct === null || reinvestPct === null) {
-return {
-capitalBase5: null,
-cumulativeNopat5: null
-};
-}
-
-let capitalBase = 100;
-
-let cumulativeNopat = 0;
-
-for (let i = 0; i < 5; i++) {
-  const nopat = capitalBase * (roicPct / 100);
-  cumulativeNopat += nopat;
-  const reinvest = nopat * (reinvestPct / 100);
-  capitalBase += reinvest;
-}
-
-return {
-  capitalBase5: capitalBase,
-  cumulativeNopat5: cumulativeNopat
-};
-
-
-}
-
-/**
-
-Compute derived metrics for all companies in state
-*/
-function computeDerivedMetricsForAllCompanies() {
-appState.companies = appState.companies.map((c) => {
-const roic = c.roicPct ?? 0;
-const reinvest = c.reinvestPct ?? 0;
-const costOfCapital =
-c.costOfCapitalPct == null
-? appState.settings.defaultCostOfCapital
-: c.costOfCapitalPct;
-
-const spread = roic - costOfCapital;
-const score = spread * (reinvest / 100);
-
-const quadrant = classifyQuadrant(roic, reinvest, appState.thresholds);
-
-const toy = computeToyScenarioForCompany(roic, reinvest);
-
-return {
-...c,
-roicPct: roic,
-reinvestPct: reinvest,
-costOfCapitalPct: costOfCapital,
-spreadPct: spread,
-valueScore: score,
-quadrant,
-capitalBase5: toy.capitalBase5,
-cumulativeNopat5: toy.cumulativeNopat5
-};
-});
-}
-
-/**
-
-Update map tab and chart
-*/
-function updateMapTab() {
-const chart = appState.charts.mapChart;
-if (!chart) return;
-
-const points = [];
-
-let maxX = 0;
-let maxY = 0;
-
-appState.companies.forEach((c) => {
-  if (c.roicPct == null || c.reinvestPct == null) return;
-  const x = c.reinvestPct;
-  const y = c.roicPct;
-  maxX = Math.max(maxX, x);
-  maxY = Math.max(maxY, y);
-
-  const meta = {
-    name: c.name || "Unnamed",
-    ticker: c.ticker || "",
-    roic: c.roicPct,
-    reinvest: c.reinvestPct,
-    quadrant: c.quadrant,
-    score: c.valueScore ?? 0
-  };
-
-  points.push({
-    x,
-    y,
-    meta
   });
-});
-
-const thresholdX = appState.thresholds.reinvest;
-const thresholdY = appState.thresholds.roic;
-
-// Colouring logic by quadrant
-function colorForQuadrant(quadrant) {
-  if (!appState.settings.colourByQuadrant) return "rgba(37, 99, 235, 0.8)";
-  switch (quadrant) {
-    case "Compounder":
-      return "rgba(22, 163, 74, 0.9)";
-    case "Cash generator":
-      return "rgba(14, 165, 233, 0.9)";
-    case "Mature stabiliser":
-      return "rgba(156, 163, 175, 0.9)";
-    case "Value trap / capital burner":
-      return "rgba(249, 115, 22, 0.9)";
-    default:
-      return "rgba(37, 99, 235, 0.8)";
-  }
 }
 
-const dataPoints = points.map((p) => {
-  const baseRadius = 5;
-  const isCompounder = p.meta.quadrant === "Compounder";
-  const radius =
-    appState.settings.highlightCompounders && isCompounder
-      ? baseRadius + 2
-      : baseRadius;
 
+}
+
+// -----------------------------
+// Overview tab
+// -----------------------------
+
+function updateOverviewTab() {
+const summaryEl = document.getElementById("overviewSummary");
+const tierChart = appState.charts.tierBarChart;
+
+const list = appState.filteredCompanies;
+const count = list.length;
+
+if (!summaryEl) return;
+
+if (count === 0) {
+  summaryEl.innerHTML =
+    "<p>No companies match the current filters. Adjust filters on the left to restore the universe.</p>";
+  if (tierChart) {
+    tierChart.data.datasets[0].data = [0, 0, 0];
+    tierChart.update();
+  }
+  return;
+}
+
+// Weighted averages (by market cap)
+let totalMktCap = 0;
+let weightedExposure = 0;
+let weightedIntangibles = 0;
+let weightedRnd = 0;
+let weightedMkt = 0;
+
+let lowCount = 0;
+let medCount = 0;
+let highCount = 0;
+
+list.forEach((c) => {
+  const w = c.marketCapUsdBn;
+  totalMktCap += w;
+  weightedExposure += c.exposureScore * w;
+  weightedIntangibles += c.intangibleAssetsPct * w;
+  weightedRnd += c.rndPctSales * w;
+  weightedMkt += c.marketingPctSales * w;
+
+  if (c.exposureTier === "Low intangible") lowCount++;
+  else if (c.exposureTier === "Medium intangible") medCount++;
+  else if (c.exposureTier === "High intangible") highCount++;
+});
+
+const avgExposure = totalMktCap ? weightedExposure / totalMktCap : 0;
+const avgIntangibles = totalMktCap ? weightedIntangibles / totalMktCap : 0;
+const avgRnd = totalMktCap ? weightedRnd / totalMktCap : 0;
+const avgMkt = totalMktCap ? weightedMkt / totalMktCap : 0;
+
+summaryEl.innerHTML = `
+  <p>You are currently looking at <strong>${count}</strong> companies.</p>
+  <p>
+    Market-cap-weighted intangible exposure score: <strong>${avgExposure.toFixed(
+      1
+    )}</strong> on a 0-100 scale.
+  </p>
+  <p>
+    Average intangibles are about <strong>${avgIntangibles.toFixed(
+      1
+    )}%</strong> of assets, with R&D spend around
+    <strong>${avgRnd.toFixed(1)}%</strong> of sales and marketing spend around
+    <strong>${avgMkt.toFixed(1)}%</strong> of sales.
+  </p>
+  <p>
+    Distribution by tier: Low intangible <strong>${lowCount}</strong>,
+    Medium intangible <strong>${medCount}</strong>, High intangible
+    <strong>${highCount}</strong>.
+  </p>
+`;
+
+if (tierChart) {
+  tierChart.data.datasets[0].data = [lowCount, medCount, highCount];
+  tierChart.update();
+}
+
+
+}
+
+// -----------------------------
+// Scatter tab
+// -----------------------------
+
+function updateScatterTab() {
+const scatterChart = appState.charts.intangibleScatterChart;
+const scatterSummary = document.getElementById("scatterSummary");
+const list = appState.filteredCompanies;
+
+if (!scatterChart || !scatterSummary) return;
+
+if (list.length === 0) {
+  scatterChart.data.datasets = [];
+  scatterChart.update();
+  scatterSummary.innerHTML =
+    "<p>No companies to display. Adjust filters to restore the universe.</p>";
+  return;
+}
+
+const maxMktCap = Math.max(...list.map((c) => c.marketCapUsdBn));
+const minPointSize = 4;
+const maxPointSize = 18;
+
+function sizeForCap(mktCap) {
+  if (!maxMktCap) return minPointSize;
+  const ratio = mktCap / maxMktCap;
+  return minPointSize + ratio * (maxPointSize - minPointSize);
+}
+
+function colorForTier(tier) {
+  if (tier === "High intangible") return "rgba(124, 58, 237, 0.9)";
+  if (tier === "Medium intangible") return "rgba(59, 130, 246, 0.9)";
+  return "rgba(16, 185, 129, 0.9)";
+}
+
+const points = list.map((c) => {
+  const investPct = c.rndPctSales + c.marketingPctSales;
   return {
-    x: p.x,
-    y: p.y,
-    meta: p.meta,
-    backgroundColor: colorForQuadrant(p.meta.quadrant),
-    radius
+    x: c.intangibleAssetsPct,
+    y: investPct,
+    meta: c,
+    pointRadius: sizeForCap(c.marketCapUsdBn),
+    pointBackgroundColor: colorForTier(c.exposureTier)
   };
 });
 
-// Vertical and horizontal threshold lines
-const lineMaxX = Math.max(maxX, thresholdX * 1.2, 10);
-const lineMaxY = Math.max(maxY, thresholdY * 1.2, 10);
-
-const verticalLine = [
-  { x: thresholdX, y: 0 },
-  { x: thresholdX, y: lineMaxY }
-];
-const horizontalLine = [
-  { x: 0, y: thresholdY },
-  { x: lineMaxX, y: thresholdY }
-];
-
-chart.data.datasets = [
+scatterChart.data.datasets = [
   {
     type: "scatter",
-    data: dataPoints,
+    data: points,
     parsing: false,
-    pointBackgroundColor: dataPoints.map((d) => d.backgroundColor),
-    pointRadius: dataPoints.map((d) => d.radius)
-  },
-  {
-    type: "line",
-    data: verticalLine,
-    borderColor: "rgba(148, 163, 184, 0.8)",
-    borderWidth: 1,
-    pointRadius: 0,
-    borderDash: [4, 4]
-  },
-  {
-    type: "line",
-    data: horizontalLine,
-    borderColor: "rgba(148, 163, 184, 0.8)",
-    borderWidth: 1,
-    pointRadius: 0,
-    borderDash: [4, 4]
+    pointRadius: points.map((p) => p.pointRadius),
+    pointBackgroundColor: points.map((p) => p.pointBackgroundColor)
   }
 ];
+scatterChart.update();
 
-chart.options.scales.x.max = lineMaxX;
-chart.options.scales.y.max = lineMaxY;
+// Summary text: count of high-high and top 2 by exposure score
+const highAssetsThreshold = 40;
+const highInvestThreshold = 15;
 
-chart.options.plugins.legend.display = false;
-chart.options.plugins.tooltip.enabled = true;
+const highHigh = list.filter(
+  (c) =>
+    c.intangibleAssetsPct >= highAssetsThreshold &&
+    c.rndPctSales + c.marketingPctSales >= highInvestThreshold
+);
 
-chart.update();
+const topByExposure = [...list]
+  .sort((a, b) => b.exposureScore - a.exposureScore)
+  .slice(0, 2);
 
-// Summary text
-const mapSummary = document.getElementById("mapSummary");
-if (mapSummary) {
-  const counts = countQuadrants();
-  mapSummary.innerHTML = `
-    <p>Companies on map: <strong>${appState.companies.length}</strong></p>
-    <p>
-      Compounders: <strong>${counts.compounders}</strong>,
-      Cash generators: <strong>${counts.cashGenerators}</strong>,
-      Mature stabilisers: <strong>${counts.stabilisers}</strong>,
-      Value traps / capital burners: <strong>${counts.valueTraps}</strong>.
-    </p>
-    <p>
-      Thresholds: ROIC ≥ ${appState.thresholds.roic.toFixed(
-        1
-      )}% and reinvestment ≥ ${appState.thresholds.reinvest.toFixed(
-    1
-  )}% define the "high" quadrant boundaries.
-    </p>
-  `;
-}
+const names = topByExposure.map((c) => c.name).join(", ");
 
-
-}
-
-/**
-
-Count companies per quadrant
-*/
-function countQuadrants() {
-let compounders = 0;
-let cashGenerators = 0;
-let stabilisers = 0;
-let valueTraps = 0;
-
-appState.companies.forEach((c) => {
-
-  switch (c.quadrant) {
-    case "Compounder":
-      compounders++;
-      break;
-    case "Cash generator":
-      cashGenerators++;
-      break;
-    case "Mature stabiliser":
-      stabilisers++;
-      break;
-    case "Value trap / capital burner":
-      valueTraps++;
-      break;
-  }
-});
-
-return { compounders, cashGenerators, stabilisers, valueTraps };
+scatterSummary.innerHTML = `
+  <p>
+    The scatter plot maps accounting intangibles on the horizontal axis against R&D plus marketing intensity on the vertical axis.
+  </p>
+  <p>
+    There are <strong>${highHigh.length}</strong> companies in the "high intangibles and high investment" corner
+    (roughly &gt;= ${highAssetsThreshold}% of assets and &gt;= ${highInvestThreshold}% of sales).
+  </p>
+  <p>
+    The highest intangible exposure scores in the current universe include: <strong>${names ||
+      "n/a"}</strong>.
+  </p>
+`;
 
 
 }
 
-/**
+// -----------------------------
+// Table tab
+// -----------------------------
 
-Update table tab
-*/
 function updateTableTab() {
-const tbody = document.querySelector("#companyTable tbody");
+const tbody = document.querySelector("#intangibleTable tbody");
 if (!tbody) return;
 
 tbody.innerHTML = "";
 
-appState.companies.forEach((c) => {
+const list = appState.filteredCompanies;
+
+if (list.length === 0) {
+  const row = document.createElement("tr");
+  const cell = document.createElement("td");
+  cell.colSpan = 11;
+  cell.textContent = "No companies match the current filters.";
+  row.appendChild(cell);
+  tbody.appendChild(row);
+  return;
+}
+
+list.forEach((c) => {
   const tr = document.createElement("tr");
+  tr.setAttribute("data-id", c.id);
 
   let rowClass = "";
-  if (c.quadrant === "Compounder") rowClass = "row-compounder";
-  else if (c.quadrant === "Cash generator") rowClass = "row-cash-generator";
-  else if (c.quadrant === "Mature stabiliser") rowClass = "row-stabiliser";
-  else if (c.quadrant === "Value trap / capital burner")
-    rowClass = "row-value-trap";
+  if (c.exposureTier === "High intangible") rowClass = "row-tier-high";
+  else if (c.exposureTier === "Medium intangible")
+    rowClass = "row-tier-medium";
+  else if (c.exposureTier === "Low intangible") rowClass = "row-tier-low";
 
   tr.className = rowClass;
 
   tr.innerHTML = `
-    <td>${c.name || ""}</td>
-    <td>${c.ticker || ""}</td>
-    <td>${formatNumber(c.roicPct, 1)}</td>
-    <td>${formatNumber(c.reinvestPct, 1)}</td>
-    <td>${formatNumber(c.costOfCapitalPct, 1)}</td>
-    <td>${formatNumber(c.spreadPct, 1)}</td>
-    <td>${formatNumber(c.valueScore, 2)}</td>
-    <td>${c.quadrant || ""}</td>
-    <td>${c.capitalBase5 != null ? formatNumber(c.capitalBase5, 1) : ""}</td>
+    <td>${c.name}</td>
+    <td>${c.ticker}</td>
+    <td>${c.region}</td>
+    <td>${c.sector}</td>
+    <td>${formatNumber(c.marketCapUsdBn, 0)}</td>
+    <td>${formatNumber(c.intangibleAssetsPct, 1)}</td>
+    <td>${formatNumber(c.goodwillPct, 1)}</td>
+    <td>${formatNumber(c.rndPctSales, 1)}</td>
+    <td>${formatNumber(c.marketingPctSales, 1)}</td>
+    <td>${formatNumber(c.exposureScore, 1)}</td>
+    <td>${c.exposureTier}</td>
   `;
   tbody.appendChild(tr);
 });
 
+// Update header sort classes
+const headers = document.querySelectorAll("#intangibleTable thead th[data-sort]");
+headers.forEach((th) => th.classList.remove("sorted-asc", "sorted-desc"));
 
-}
-
-/**
-
-Update quadrants tab
-*/
-function updateQuadrantsTab() {
-const cards = {
-Compounder: document.getElementById("quadrant-compounders"),
-"Cash generator": document.getElementById("quadrant-cash-generators"),
-"Mature stabiliser": document.getElementById("quadrant-stabilisers"),
-"Value trap / capital burner": document.getElementById("quadrant-value-traps")
-};
-
-const buckets = {
-
-  Compounder: [],
-  "Cash generator": [],
-  "Mature stabiliser": [],
-  "Value trap / capital burner": []
-};
-
-appState.companies.forEach((c) => {
-  if (buckets[c.quadrant]) buckets[c.quadrant].push(c);
-});
-
-const descriptions = {
-  Compounder:
-    "High ROIC and high reinvestment. Potential long-term value compounders if sustained.",
-  "Cash generator":
-    "High ROIC but low reinvestment. Often strong cash producers with limited reinvestment.",
-  "Mature stabiliser":
-    "Lower ROIC and lower reinvestment. Often more mature or defensive profiles.",
-  "Value trap / capital burner":
-    "Low ROIC but high reinvestment. Growth that risks destroying value if ROIC stays low."
-};
-
-let bestQuadrant = null;
-let bestQuadrantScore = -Infinity;
-let bestCompany = null;
-
-Object.keys(buckets).forEach((q) => {
-  const list = buckets[q];
-  const card = cards[q];
-  if (!card) return;
-
-  if (list.length === 0) {
-    card.innerHTML = `
-      <h3>${q}</h3>
-      <p>${descriptions[q]}</p>
-      <p>No companies in this quadrant.</p>
-    `;
-    return;
-  }
-
-  const avgRoic =
-    list.reduce((acc, c) => acc + (c.roicPct || 0), 0) / list.length;
-  const avgReinv =
-    list.reduce((acc, c) => acc + (c.reinvestPct || 0), 0) / list.length;
-  const avgScore =
-    list.reduce((acc, c) => acc + (c.valueScore || 0), 0) / list.length;
-
-  // Determine best quadrant by avg score
-  if (avgScore > bestQuadrantScore) {
-    bestQuadrantScore = avgScore;
-    bestQuadrant = q;
-  }
-
-  // Top 3 by valueScore
-  const top3 = [...list]
-    .sort((a, b) => (b.valueScore || 0) - (a.valueScore || 0))
-    .slice(0, 3);
-
-  if (!bestCompany || (top3[0] && top3[0].valueScore > bestCompany.valueScore))
-    bestCompany = top3[0] || bestCompany;
-
-  const topListHtml =
-    top3.length > 0
-      ? `<ul>${top3
-          .map(
-            (c) =>
-              `<li>${c.name || "Unnamed"} (${formatNumber(
-                c.valueScore,
-                2
-              )})</li>`
-          )
-          .join("")}</ul>`
-      : "<p>No companies with scores in this quadrant.</p>";
-
-  card.innerHTML = `
-    <h3>${q}</h3>
-    <p>${descriptions[q]}</p>
-    <p><strong>Count:</strong> ${list.length}</p>
-    <p><strong>Average ROIC:</strong> ${formatNumber(avgRoic, 1)}%</p>
-    <p><strong>Average reinvestment:</strong> ${formatNumber(avgReinv, 1)}%</p>
-    <p><strong>Average value score:</strong> ${formatNumber(avgScore, 2)}</p>
-    <p><strong>Top companies by score:</strong></p>
-    ${topListHtml}
-  `;
-});
-
-const summaryEl = document.getElementById("quadrantSummaryText");
-if (summaryEl) {
-  if (!bestQuadrant || !bestCompany) {
-    summaryEl.innerHTML = `
-      <p>Once you add companies with ROIC and reinvestment data, this tab will summarise which quadrant appears most value-creative based on your inputs.</p>
-    `;
-  } else {
-    summaryEl.innerHTML = `
-      <p>For these thresholds, the highest average value creation score currently comes from the <strong>${bestQuadrant}</strong> quadrant, with an average score of <strong>${formatNumber(
-      bestQuadrantScore,
-      2
-    )}</strong>.</p>
-      <p>Your strongest individual company by this metric is <strong>${
-        bestCompany.name || "Unnamed"
-      }</strong> with a score of <strong>${formatNumber(
-      bestCompany.valueScore,
-      2
-    )}</strong>, given its ROIC, reinvestment rate, and cost of capital assumptions.</p>
-    `;
+if (appState.sort.column) {
+  const activeHeader = document.querySelector(
+    `#intangibleTable thead th[data-sort="${appState.sort.column}"]`
+  );
+  if (activeHeader) {
+    activeHeader.classList.add(
+      appState.sort.ascending ? "sorted-asc" : "sorted-desc"
+    );
   }
 }
 
 
 }
 
-/**
-
-Format number to fixed decimals, handling null
-*/
-function formatNumber(val, decimals) {
-if (val == null || isNaN(val)) return "";
-return Number(val).toFixed(decimals);
-}
-
-/**
-
-Handle table sorting
-*/
-function handleSort(column, headerEl) {
-if (appState.sort.column === column) {
+function handleTableSort(columnKey, headerEl) {
+if (appState.sort.column === columnKey) {
 appState.sort.ascending = !appState.sort.ascending;
 } else {
-appState.sort.column = column;
+appState.sort.column = columnKey;
 appState.sort.ascending = true;
 }
 
 const dir = appState.sort.ascending ? 1 : -1;
 
-appState.companies.sort((a, b) => {
-  const av = getSortValue(a, column);
-  const bv = getSortValue(b, column);
+appState.filteredCompanies.sort((a, b) => {
+  const av = getSortValue(a, columnKey);
+  const bv = getSortValue(b, columnKey);
 
   if (typeof av === "string" || typeof bv === "string") {
     return av.localeCompare(bv) * dir;
@@ -951,70 +1035,194 @@ appState.companies.sort((a, b) => {
   return (av - bv) * dir;
 });
 
-// Update header classes
-document.querySelectorAll("#companyTable th[data-sort]").forEach((th) => {
-  th.classList.remove("sorted-asc", "sorted-desc");
-});
-if (headerEl) {
-  headerEl.classList.add(appState.sort.ascending ? "sorted-asc" : "sorted-desc");
-}
-
 updateTableTab();
 
 
 }
 
-/**
-
-Get value used for sorting for a company and column
-*/
 function getSortValue(c, column) {
 switch (column) {
 case "name":
 return c.name || "";
 case "ticker":
 return c.ticker || "";
-case "roic":
-return c.roicPct ?? 0;
-case "reinvest":
-return c.reinvestPct ?? 0;
-case "costOfCapital":
-return c.costOfCapitalPct ?? appState.settings.defaultCostOfCapital;
-case "spread":
-return c.spreadPct ?? 0;
-case "score":
-return c.valueScore ?? 0;
-case "quadrant":
-return c.quadrant || "";
-case "capitalBase5":
-return c.capitalBase5 ?? 0;
+case "region":
+return c.region || "";
+case "sector":
+return c.sector || "";
+case "marketCapUsdBn":
+return c.marketCapUsdBn ?? 0;
+case "intangibleAssetsPct":
+return c.intangibleAssetsPct ?? 0;
+case "goodwillPct":
+return c.goodwillPct ?? 0;
+case "rndPctSales":
+return c.rndPctSales ?? 0;
+case "marketingPctSales":
+return c.marketingPctSales ?? 0;
+case "exposureScore":
+return c.exposureScore ?? 0;
+case "exposureTier":
+// Order tiers Low < Medium < High
+if (c.exposureTier === "Low intangible") return 0;
+if (c.exposureTier === "Medium intangible") return 1;
+if (c.exposureTier === "High intangible") return 2;
+return 3;
 default:
 return 0;
 }
 }
 
-/**
+// -----------------------------
+// Profiles tab
+// -----------------------------
 
-Main recalculation pipeline
-*/
-function handleRecalculate() {
-// Collect latest input state
-collectCompanyInputs();
-collectThresholdsAndSettingsFromLeftPanel();
-syncSettingsViewFromState();
+function setActiveCompany(companyId) {
+if (!companyId) {
+appState.activeCompanyId = null;
+updateProfilesTab();
+return;
+}
+appState.activeCompanyId = companyId;
+updateProfilesTab();
+}
 
-// Compute derived metrics
+function updateProfilesTab() {
+const selectEl = document.getElementById("profileCompanySelect");
+const detailsEl = document.getElementById("profileDetails");
+const barChart = appState.charts.profileBarChart;
+const scoreChart = appState.charts.profileScoreChart;
 
-computeDerivedMetricsForAllCompanies();
+if (!selectEl || !detailsEl) return;
 
-// Update all output views
-updateMapTab();
-updateTableTab();
-updateQuadrantsTab();
+const list = appState.filteredCompanies;
+
+// Populate dropdown options
+selectEl.innerHTML = "";
+if (list.length === 0) {
+  const opt = document.createElement("option");
+  opt.value = "";
+  opt.textContent = "No companies available";
+  selectEl.appendChild(opt);
+  appState.activeCompanyId = null;
+  detailsEl.innerHTML =
+    "<p>No companies are available with the current filters. Adjust filters on the left.</p>";
+  if (barChart) {
+    barChart.data.datasets[0].data = [0, 0, 0, 0];
+    barChart.update();
+  }
+  if (scoreChart) {
+    scoreChart.data.datasets[0].data = [0];
+    scoreChart.update();
+  }
+  return;
+}
+
+list.forEach((c) => {
+  const opt = document.createElement("option");
+  opt.value = c.id;
+  opt.textContent = `${c.name} (${c.ticker})`;
+  selectEl.appendChild(opt);
+});
+
+// Ensure activeCompanyId is in list
+if (
+  !appState.activeCompanyId ||
+  !list.some((c) => c.id === appState.activeCompanyId)
+) {
+  appState.activeCompanyId = list[0].id;
+}
+
+selectEl.value = appState.activeCompanyId;
+
+const company = list.find((c) => c.id === appState.activeCompanyId);
+if (!company) {
+  detailsEl.innerHTML =
+    "<p>Select a company from the dropdown once filters return some results.</p>";
+  return;
+}
+
+const investPct = company.rndPctSales + company.marketingPctSales;
+
+detailsEl.innerHTML = `
+  <h3>${company.name} (${company.ticker})</h3>
+  <p>
+    Region: <strong>${company.region}</strong> |
+    Country: <strong>${company.country}</strong> |
+    Sector: <strong>${company.sector}</strong>
+  </p>
+  <p>
+    Market cap: <strong>$${formatNumber(
+      company.marketCapUsdBn,
+      0
+    )}bn</strong> |
+    Intangible exposure tier: <strong>${company.exposureTier}</strong> (score
+    <strong>${formatNumber(company.exposureScore, 1)}</strong>)
+  </p>
+  <div class="profile-metrics-grid">
+    <div>Intangibles % of assets: <strong>${formatNumber(
+      company.intangibleAssetsPct,
+      1
+    )}%</strong></div>
+    <div>Goodwill % of assets: <strong>${formatNumber(
+      company.goodwillPct,
+      1
+    )}%</strong></div>
+    <div>R&amp;D % of sales: <strong>${formatNumber(
+      company.rndPctSales,
+      1
+    )}%</strong></div>
+    <div>Marketing % of sales: <strong>${formatNumber(
+      company.marketingPctSales,
+      1
+    )}%</strong></div>
+    <div>Intangible investment (R&amp;D + marketing): <strong>${formatNumber(
+      investPct,
+      1
+    )}%</strong> of sales</div>
+    <div>Software/services tilt: <strong>${formatNumber(
+      company.softwareServicesTilt,
+      0
+    )}</strong> / 100</div>
+  </div>
+  <p style="margin-top:0.5rem;">${company.notes || ""}</p>
+`;
+
+if (barChart) {
+  barChart.data.datasets[0].data = [
+    company.intangibleAssetsPct,
+    company.goodwillPct,
+    company.rndPctSales,
+    company.marketingPctSales
+  ];
+  barChart.update();
+}
+
+if (scoreChart) {
+  scoreChart.data.datasets[0].data = [company.exposureScore];
+  scoreChart.update();
+}
 
 
 }
 
+// -----------------------------
+// Utility functions
+// -----------------------------
+
+function clampNumber(val, min, max) {
+if (isNaN(val)) return min;
+return Math.min(max, Math.max(min, val));
+}
+
+function formatNumber(val, decimals) {
+if (val == null || isNaN(val)) return "";
+return Number(val).toFixed(decimals);
+}
+
+// -----------------------------
 // Start app
-init();
+// -----------------------------
+
+initApp();
 });
